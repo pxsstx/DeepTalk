@@ -16,16 +16,44 @@ export default function DeepTalkPage() {
     const handleShake = (event: DeviceMotionEvent) => {
       if (event.acceleration && event.acceleration.x) {
         const acceleration = event.acceleration.x;
-        if (Math.abs(acceleration) > 15) {
+        console.log('Acceleration:', acceleration); // Debugging line
+        if (Math.abs(acceleration) > 10) { // Adjust threshold as needed
           flipCard();
         }
       }
     };
 
-    window.addEventListener('devicemotion', handleShake);
+    const addEventListener = () => {
+      window.addEventListener('devicemotion', handleShake);
+    };
+
+    const removeEventListener = () => {
+      window.removeEventListener('devicemotion', handleShake);
+    };
+
+    // Request permission for device motion (if needed)
+    const requestPermission = async () => {
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+          const response = await DeviceMotionEvent.requestPermission();
+          if (response === 'granted') {
+            addEventListener();
+          } else {
+            console.warn('Device motion permission denied');
+          }
+        } catch (error) {
+          console.error('Error requesting device motion permission:', error);
+        }
+      } else {
+        // Older browsers or devices
+        addEventListener();
+      }
+    };
+
+    requestPermission();
 
     return () => {
-      window.removeEventListener('devicemotion', handleShake);
+      removeEventListener();
     };
   }, []);
 
@@ -39,7 +67,7 @@ export default function DeepTalkPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 flex flex-col items-center justify-center p-4">
+    <div className="min-h-svh h-svh bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 flex flex-col items-center justify-center p-4">
       <h1 className="text-4xl font-bold text-white mb-8">Deep Talk Cards</h1>
       <div className="w-full max-w-md aspect-[3/4] perspective-1000">
         <motion.div
